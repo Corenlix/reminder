@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reminders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/reminders}">
+                Список напоминаний
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/user/settings}">
+                Настройки пользователя
+            </a>
+        </li>
+    </ul>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Reminder List</h1>
+        <a th:href="@{/reminders/create}" class="btn btn-primary">Create New Reminder</a>
+    </div>
+
+    <form method="get" th:action="@{/reminders}" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" th:value="${filter.title}" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" th:value="${filter.description}" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">From</label>
+            <input type="datetime-local" id="from" name="from" th:value="${filter.from}" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">To</label>
+            <input type="datetime-local" id="to" name="to" th:value="${filter.to}" class="form-control" />
+        </div>
+
+        <th:block th:if="${page.sort.sorted}">
+            <th:block th:each="order : ${page.sort}">
+                <input type="hidden" name="sort" th:value="${order.property + ',' + order.direction}" />
+            </th:block>
+        </th:block>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-outline-secondary">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>
+                    <a class="text-decoration-none" th:href="@{/reminders(sort='title,' + ${#strings.equals(page.sort.toString(), 'title: ASC') ? 'desc' : 'asc'}, title=${filter.title}, name=${filter.description}, from=${filter.from}, to=${filter.to})}">
+                        Title
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" th:href="@{/reminders(sort='description,' + ${#strings.equals(page.sort.toString(), 'description: ASC') ? 'desc' : 'asc'}, title=${filter.title}, name=${filter.description}, from=${filter.from}, to=${filter.to})}">
+                        Description
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" th:href="@{/reminders(sort='remind,' + ${#strings.equals(page.sort.toString(), 'remind: ASC') ? 'desc' : 'asc'}, title=${filter.title}, name=${filter.description}, from=${filter.from}, to=${filter.to})}">
+                        Remind At
+                    </a>
+                </th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="reminder : ${reminders}">
+                <td th:text="${reminder.id}">1</td>
+                <td th:text="${reminder.title}">Title</td>
+                <td th:text="${reminder.description}">Description</td>
+                <td th:text="${#temporals.format(reminder.remind, 'yyyy-MM-dd HH:mm')}">Date</td>
+                <td class="d-flex gap-2">
+                    <a th:href="@{/reminders/edit/{id}(id=${reminder.id})}" class="btn btn-sm btn-outline-primary">Edit</a>
+
+                    <form th:action="@{|/reminders/delete/${reminder.id}|}" method="post"
+                          onsubmit="return confirm('Are you sure you want to delete this reminder?')"
+                          th:object="${reminder}">
+                        <input type="hidden" name="userId" th:value="${userId}" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:if="${page.totalPages > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${!page.hasPrevious()} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/reminders(page=${page.number - 1}, size=${page.size}, title=${filter.title}, name=${filter.description}, from=${filter.from}, to=${filter.to})}">
+                    Previous
+                </a>
+            </li>
+
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                th:classappend="${i == page.number} ? 'active'">
+                <a class="page-link"
+                   th:if="${i != page.number}"
+                   th:href="@{/reminders(page=${i}, size=${page.size}, title=${filter.title}, name=${filter.description}, from=${filter.from}, to=${filter.to})}"
+                   th:text="${i + 1}">
+                </a>
+                <span class="page-link" th:if="${i == page.number}" th:text="${i + 1}"></span>
+            </li>
+
+            <li class="page-item" th:classappend="${!page.hasNext()} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/reminders(page=${page.number + 1}, size=${page.size}, title=${filter.title}, name=${filter.description}, from=${filter.from}, to=${filter.to})}">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

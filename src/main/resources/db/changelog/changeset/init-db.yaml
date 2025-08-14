@@ -1,0 +1,81 @@
+databaseChangeLog:
+  - changeSet:
+      author: d.a.sevastyanov
+      id: init-db
+      changes:
+        - createSequence:
+            sequenceName: client_seq
+            startValue: 1
+            incrementBy: 50
+        - createTable:
+            tableName: client
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  defaultValueSequenceNext: client_seq
+                  remarks: Уникальный идентификатор
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: sub_id
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+              - column:
+                  name: email
+                  type: varchar(255)
+                  remarks: Email
+                  constraints:
+                    unique: true
+              - column:
+                  name: telegram_id
+                  type: varchar(255)
+                  remarks: Telegram id пользователя
+                  constraints:
+                    unique: true
+        - createSequence:
+            sequenceName: reminder_seq
+            startValue: 1
+            incrementBy: 50
+        - createTable:
+            tableName: reminder
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  remarks: Уникальный идентификатор
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  remarks: Краткое описание
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(4096)
+                  remarks: Полное описание
+              - column:
+                  name: remind
+                  type: timestamp
+                  remarks: Дата и время напоминания
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  remarks: Идентификатор пользователя
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: reminder
+            baseColumnNames: user_id
+            referencedTableName: client
+            referencedColumnNames: id
+            constraintName: fk_reminder_client
+            onDelete: cascade
